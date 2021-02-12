@@ -1,6 +1,6 @@
-import React, { SetStateAction, useContext, useEffect, useState } from "react";
-import { Button, StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import React, { useContext, useEffect, useState } from "react";
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 import { GameSettingsContext } from "../components/Context";
 interface TimerScreenProps extends StackScreenProps<any> {
@@ -28,6 +28,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
   const [isPlayer1Turn, setIsPlayer1Turn] = useState(
     undefined as unknown | boolean
   );
+  const [isPlayer1Win, setisPlayer1Win] = useState(undefined);
 
   let isMounted = true; //Used to prevent memory leak
 
@@ -49,37 +50,29 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
   }, [navigation, isGamePaused]);
 
   const handlePlayer1Press = () => {
-    if (isMounted) {
-      setIsPlayer1Turn(false);
-      clearInterval(player1Interval);
-      if (isPlayer1Turn !== undefined) {
-        setPlayer1Time(
-          (currentTime) => currentTime + settings.increment * 1000
-        );
-      }
-      let intervalId = setInterval(
-        () => setPlayer2Time((currentTime) => currentTime - 100),
-        100
-      );
-      setPlayer2Interval((intervalId as unknown) as number);
+    setIsPlayer1Turn(false);
+    clearInterval(player1Interval);
+    if (isPlayer1Turn !== undefined) {
+      setPlayer1Time((currentTime) => currentTime + settings.increment * 1000);
     }
+    let intervalId = setInterval(
+      () => setPlayer2Time((currentTime) => currentTime - 100),
+      100
+    );
+    setPlayer2Interval((intervalId as unknown) as number);
   };
 
   const handlePlayer2Press = () => {
-    if (isMounted) {
-      setIsPlayer1Turn(true);
-      clearInterval(player2Interval);
-      if (isPlayer1Turn !== undefined) {
-        setPlayer2Time(
-          (currentTime) => currentTime + settings.increment * 1000
-        );
-      }
-      let intervalId = setInterval(
-        () => setPlayer1Time((currentTime) => currentTime - 100),
-        100
-      );
-      setPlayer1Interval((intervalId as unknown) as number);
+    setIsPlayer1Turn(true);
+    clearInterval(player2Interval);
+    if (isPlayer1Turn !== undefined) {
+      setPlayer2Time((currentTime) => currentTime + settings.increment * 1000);
     }
+    let intervalId = setInterval(
+      () => setPlayer1Time((currentTime) => currentTime - 100),
+      100
+    );
+    setPlayer1Interval((intervalId as unknown) as number);
   };
 
   const handlePauseGame = () => {
@@ -107,6 +100,9 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
   };
 
   const handleResetGame = () => {
+    if (isGamePaused) {
+      setIsGamepaused(false);
+    }
     clearInterval(player1Interval);
     clearInterval(player2Interval);
     setPlayer1Time(settings.timeSetting);
@@ -121,7 +117,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.timer}>
+      <View style={styles.timerContainer}>
         <TouchableOpacity
           onPress={handlePlayer1Press}
           disabled={
@@ -129,12 +125,21 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
           }
           style={styles.timerButton}
         >
+          {isGamePaused !== undefined && isGamePaused && (
+            <Text
+              style={[
+                styles.timerText,
+                { fontSize: 22, transform: [{ rotate: "180deg" }] },
+              ]}
+            >
+              Paused
+            </Text>
+          )}
           <Text
-            style={{
-              fontSize: 46,
-              margin: "auto",
-              transform: [{ rotate: "180deg" }],
-            }}
+            style={[
+              styles.timerText,
+              { transform: [{ rotate: "180deg" }] }, //The as statements are to satisfy the type checks
+            ]}
           >
             {Math.floor(player1Time / (1000 * 60)).toLocaleString("en-US", {
               minimumIntegerDigits: 2,
@@ -155,7 +160,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
       <View style={styles.options}>
         <TouchableOpacity style={styles.optionsButtton} onPress={handleGoBack}>
           <Ionicons
-            style={{ margin: "auto" }}
+            style={styles.optionsIcon}
             name="arrow-back-outline"
             size={24}
             color="black"
@@ -166,7 +171,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
             style={styles.optionsButtton}
             onPress={handleContinueGame}
           >
-            <Ionicons style={{ margin: "auto" }} name="play" size={24} />
+            <Ionicons style={styles.optionsIcon} name="play" size={24} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -175,7 +180,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
             onPress={handlePauseGame}
           >
             {isPlayer1Turn !== undefined && (
-              <Ionicons style={{ margin: "auto" }} name="pause" size={24} />
+              <Ionicons style={styles.optionsIcon} name="pause" size={24} />
             )}
           </TouchableOpacity>
         )}
@@ -186,13 +191,13 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
           <Ionicons style={{ margin: "auto" }} name="refresh" size={24} />
         </TouchableOpacity>
       </View>
-      <View style={styles.timer}>
+      <View style={styles.timerContainer}>
         <TouchableOpacity
           onPress={handlePlayer2Press}
           disabled={(isGamePaused as boolean) || (isPlayer1Turn as boolean)}
           style={styles.timerButton}
         >
-          <Text style={{ fontSize: 46, margin: "auto" }}>
+          <Text style={styles.timerText}>
             {Math.floor(player2Time / (1000 * 60)).toLocaleString("en-US", {
               minimumIntegerDigits: 2,
               useGrouping: false,
@@ -206,6 +211,9 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
                 }
               )}
           </Text>
+          {isGamePaused !== undefined && isGamePaused && (
+            <Text style={[styles.timerText, { fontSize: 22 }]}>Paused</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -219,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  timer: {
+  timerContainer: {
     flex: 1,
     width: "100%",
     justifyContent: "center",
@@ -228,8 +236,14 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
     justifyContent: "center",
+    textAlignVertical: "center",
+    backgroundColor: "#eee",
+  },
+  timerText: {
+    fontSize: 56,
+    justifyContent: "center",
+    textAlignVertical: "center",
     textAlign: "center",
-    backgroundColor: "#EEE",
   },
   options: {
     width: "100%",
@@ -237,7 +251,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#ccc",
   },
+  optionsIcon: {
+    flex: 1,
+    justifyContent: "center",
+  },
   optionsButtton: {
-    marginHorizontal: 10,
+    marginHorizontal: 20,
   },
 });
