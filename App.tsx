@@ -6,7 +6,7 @@ import {
   createStackNavigator,
   StackScreenProps,
 } from "@react-navigation/stack";
-import { NavigationContainer, NavigationProp } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import TimerScreen from "./screens/TimerScreen";
 import { GameSettingsContext } from "./components/Context";
 
@@ -22,7 +22,7 @@ export default function App(props: IAppProps) {
     <GameSettingsContext.Provider value={{ timeSetting, increment }}>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Home">
+          <Stack.Screen name="Chess timer">
             {({ navigation }: StackScreenProps<any>) =>
               (
                 <Button

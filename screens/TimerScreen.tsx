@@ -1,5 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  Platform,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 import { GameSettingsContext } from "../components/Context";
@@ -28,17 +35,35 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
   const [isPlayer1Turn, setIsPlayer1Turn] = useState(
     undefined as unknown | boolean
   );
-  const [isPlayer1Win, setisPlayer1Win] = useState(undefined);
-
-  let isMounted = true; //Used to prevent memory leak
+  const [isPlayer1Win, setisPlayer1Win] = useState(
+    undefined as undefined | boolean
+  );
 
   useEffect(() => {
     if (player1Time <= 0) {
-      handleResetGame();
-      window.alert("Player 2 wins");
+      clearInterval(player1Interval);
+      clearInterval(player2Interval);
+      if (Platform.OS == "ios" || Platform.OS == "android") {
+        Alert.alert("Player 2 wins", "", [
+          { text: "To menu", onPress: () => handleGoBack(), style: "cancel" },
+          { text: "New game", onPress: () => handleResetGame() },
+        ]);
+      } else {
+        window.alert("Player 2 wins");
+        handleResetGame();
+      }
     } else if (player2Time <= 0) {
-      handleResetGame();
-      window.alert("Player 1 wins");
+      clearInterval(player1Interval);
+      clearInterval(player2Interval);
+      if (Platform.OS == "ios" || Platform.OS == "android") {
+        Alert.alert("Player 1 wins", "", [
+          { text: "To menu", onPress: () => handleGoBack(), style: "cancel" },
+          { text: "New game", onPress: () => handleResetGame() },
+        ]);
+      } else {
+        window.alert("Player 1 wins");
+        handleResetGame();
+      }
     }
   }, [player1Time, player2Time]);
   useEffect(() => {
@@ -100,19 +125,69 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
   };
 
   const handleResetGame = () => {
-    if (isGamePaused) {
-      setIsGamepaused(false);
-    }
     clearInterval(player1Interval);
     clearInterval(player2Interval);
     setPlayer1Time(settings.timeSetting);
     setPlayer2Time(settings.timeSetting);
     setIsPlayer1Turn(undefined);
+    setIsGamepaused(false);
+  };
+
+  const handleOpenResetDialog = () => {
+    if (Platform.OS == "ios" || Platform.OS == "android") {
+      handlePauseGame();
+      Alert.alert(
+        "Are you sure you want to reset?",
+        "",
+        [
+          {
+            text: "Cancel",
+            onPress: () => handleContinueGame(),
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            onPress: () => {
+              handleResetGame();
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      handleResetGame();
+    }
   };
 
   const handleGoBack = () => {
     handlePauseGame(); //Pausing to clear the intervals and prevent a memory leak
     navigation.goBack();
+  };
+
+  const handleOpenGoBackDialog = () => {
+    if (Platform.OS == "ios" || Platform.OS == "android") {
+      handlePauseGame();
+      Alert.alert(
+        "Are you sure you want to go back?",
+        "",
+        [
+          {
+            text: "Cancel",
+            onPress: () => {},
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            onPress: () => {
+              handleGoBack();
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      handleGoBack();
+    }
   };
 
   return (
@@ -125,7 +200,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
           }
           style={styles.timerButton}
         >
-          {isGamePaused !== undefined && isGamePaused && (
+          {isGamePaused && (
             <Text
               style={[
                 styles.timerText,
@@ -158,7 +233,10 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
       </View>
 
       <View style={styles.options}>
-        <TouchableOpacity style={styles.optionsButtton} onPress={handleGoBack}>
+        <TouchableOpacity
+          style={styles.optionsButtton}
+          onPress={handleOpenGoBackDialog}
+        >
           <Ionicons
             style={styles.optionsIcon}
             name="arrow-back-outline"
@@ -186,7 +264,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
         )}
         <TouchableOpacity
           style={styles.optionsButtton}
-          onPress={handleResetGame}
+          onPress={handleOpenResetDialog}
         >
           <Ionicons style={{ margin: "auto" }} name="refresh" size={24} />
         </TouchableOpacity>
@@ -211,7 +289,7 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
                 }
               )}
           </Text>
-          {isGamePaused !== undefined && isGamePaused && (
+          {isGamePaused && (
             <Text style={[styles.timerText, { fontSize: 22 }]}>Paused</Text>
           )}
         </TouchableOpacity>
