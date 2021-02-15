@@ -166,25 +166,29 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
 
   const handleOpenGoBackDialog = () => {
     if (Platform.OS == "ios" || Platform.OS == "android") {
-      handlePauseGame();
-      Alert.alert(
-        "Are you sure you want to go back?",
-        "",
-        [
-          {
-            text: "Cancel",
-            onPress: () => {},
-            style: "cancel",
-          },
-          {
-            text: "OK",
-            onPress: () => {
-              handleGoBack();
+      if (isGamePaused || isPlayer1Turn === undefined) {
+        handleGoBack();
+      } else {
+        handlePauseGame();
+        Alert.alert(
+          "Are you sure you want to go back?",
+          "",
+          [
+            {
+              text: "Cancel",
+              onPress: () => {},
+              style: "cancel",
             },
-          },
-        ],
-        { cancelable: false }
-      );
+            {
+              text: "OK",
+              onPress: () => {
+                handleGoBack();
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      }
     } else {
       handleGoBack();
     }
