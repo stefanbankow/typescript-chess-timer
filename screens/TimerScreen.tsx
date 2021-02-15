@@ -44,24 +44,24 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
       clearInterval(player1Interval);
       clearInterval(player2Interval);
       if (Platform.OS == "ios" || Platform.OS == "android") {
-        Alert.alert("Player 2 wins", "", [
+        Alert.alert(`${settings.player2Name} wins`, "", [
           { text: "To menu", onPress: () => handleGoBack(), style: "cancel" },
           { text: "New game", onPress: () => handleResetGame() },
         ]);
       } else {
-        window.alert("Player 2 wins");
+        window.alert(`${settings.player2Name} wins`);
         handleResetGame();
       }
     } else if (player2Time <= 0) {
       clearInterval(player1Interval);
       clearInterval(player2Interval);
       if (Platform.OS == "ios" || Platform.OS == "android") {
-        Alert.alert("Player 1 wins", "", [
+        Alert.alert(`${settings.player1Name} wins`, "", [
           { text: "To menu", onPress: () => handleGoBack(), style: "cancel" },
           { text: "New game", onPress: () => handleResetGame() },
         ]);
       } else {
-        window.alert("Player 1 wins");
+        window.alert(`${settings.player1Name} wins`);
         handleResetGame();
       }
     }
@@ -233,6 +233,14 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
                 }
               )}
           </Text>
+          <Text
+            style={[
+              styles.timerText,
+              { fontSize: 16, transform: [{ rotate: "180deg" }] },
+            ]}
+          >
+            {settings.player1Name}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -279,6 +287,10 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
           disabled={(isGamePaused as boolean) || (isPlayer1Turn as boolean)}
           style={styles.timerButton}
         >
+          <Text style={[styles.timerText, { fontSize: 16 }]}>
+            {settings.player2Name}
+          </Text>
+
           <Text style={styles.timerText}>
             {Math.floor(player2Time / (1000 * 60)).toLocaleString("en-US", {
               minimumIntegerDigits: 2,

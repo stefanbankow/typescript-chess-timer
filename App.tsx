@@ -20,6 +20,7 @@ import TimerScreen from "./screens/TimerScreen";
 import { GameSettingsContext } from "./components/Context";
 import Slider from "@react-native-community/slider";
 import SettingsInput from "./components/SettingsInput";
+import NameInput from "./components/NameInput";
 
 enableScreens();
 const Stack = createStackNavigator();
@@ -32,6 +33,9 @@ export default function App(props: IAppProps) {
   const [minutesInput, setMinutesInput] = useState("");
   const [secondsInput, setSecondsInput] = useState("");
   const [incrementInput, setIncrementInput] = useState("");
+  const [player1Name, setPlayer1Name] = useState("");
+  const [player2Name, setPlayer2Name] = useState("");
+
   const handleGameStart = (navigation: StackNavigationProp<any>) => {
     let minutesInt: number = 10;
     let secondsInt: number = 0;
@@ -45,6 +49,12 @@ export default function App(props: IAppProps) {
     if (incrementInput !== "") {
       incrementInt = parseInt(incrementInput);
     }
+    if (player1Name === "") {
+      setPlayer1Name("Player 1");
+    }
+    if (player2Name === "") {
+      setPlayer2Name("Player 2");
+    }
 
     let time = minutesInt * 60 * 1000 + secondsInt * 1000;
 
@@ -53,7 +63,9 @@ export default function App(props: IAppProps) {
     navigation.navigate("timerScreen");
   };
   return (
-    <GameSettingsContext.Provider value={{ timeSetting, increment }}>
+    <GameSettingsContext.Provider
+      value={{ timeSetting, increment, player1Name, player2Name }}
+    >
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen name="Chess timer">
@@ -64,6 +76,19 @@ export default function App(props: IAppProps) {
                   style={styles.container}
                 >
                   <View style={styles.inputsContainer}>
+                    <View style={{ marginBottom: 10 }}>
+                      <Text style={styles.inputTitle}>Player Names</Text>
+                      <NameInput
+                        defaultVal="Player 1"
+                        value={player1Name}
+                        setStateFunc={setPlayer1Name}
+                      />
+                      <NameInput
+                        defaultVal="Player 2"
+                        value={player2Name}
+                        setStateFunc={setPlayer2Name}
+                      />
+                    </View>
                     <Text style={styles.inputTitle}>Starting time:</Text>
                     <View style={styles.singleInputContainer}>
                       <SettingsInput
@@ -88,14 +113,16 @@ export default function App(props: IAppProps) {
                         setStateFunc={setIncrementInput}
                       />
                     </View>
-                  </View>
 
-                  <Button
-                    title="Start"
-                    onPress={() => {
-                      handleGameStart(navigation);
-                    }}
-                  />
+                    <View style={{ width: "50%", alignSelf: "center" }}>
+                      <Button
+                        title="Start"
+                        onPress={() => {
+                          handleGameStart(navigation);
+                        }}
+                      />
+                    </View>
+                  </View>
                 </KeyboardAvoidingView>
               ) as JSX.Element
             }
