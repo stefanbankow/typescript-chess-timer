@@ -35,9 +35,8 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
   const [isPlayer1Turn, setIsPlayer1Turn] = useState(
     undefined as unknown | boolean
   );
-  const [isPlayer1Win, setisPlayer1Win] = useState(
-    undefined as undefined | boolean
-  );
+  const [player1MoveCount, setPlayer1MoveCount] = useState(0);
+  const [player2MoveCount, setPlayer2MoveCount] = useState(0);
 
   useEffect(() => {
     if (player1Time <= 0) {
@@ -78,6 +77,8 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
     setIsPlayer1Turn(false);
     clearInterval(player1Interval);
     if (isPlayer1Turn !== undefined) {
+      setPlayer1MoveCount((prevVal) => prevVal + 1);
+
       setPlayer1Time((currentTime) => currentTime + settings.increment * 1000);
     }
     let intervalId = setInterval(
@@ -89,8 +90,11 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
 
   const handlePlayer2Press = () => {
     setIsPlayer1Turn(true);
+
     clearInterval(player2Interval);
     if (isPlayer1Turn !== undefined) {
+      setPlayer2MoveCount((prevVal) => prevVal + 1);
+
       setPlayer2Time((currentTime) => currentTime + settings.increment * 1000);
     }
     let intervalId = setInterval(
@@ -130,6 +134,8 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
     setPlayer1Time(settings.timeSetting);
     setPlayer2Time(settings.timeSetting);
     setIsPlayer1Turn(undefined);
+    setPlayer1MoveCount(0);
+    setPlayer2MoveCount(0);
     setIsGamepaused(false);
   };
 
@@ -204,6 +210,18 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
           }
           style={styles.timerButton}
         >
+          <Text
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              paddingVertical:
+                Platform.OS === "ios" || Platform.OS === "android" ? 20 : 5,
+              transform: [{ rotate: "180deg" }],
+            }}
+          >
+            Move count: {player1MoveCount}
+          </Text>
           {isGamePaused && (
             <Text
               style={[
@@ -308,6 +326,9 @@ export default function TimerScreen({ navigation }: TimerScreenProps) {
           {isGamePaused && (
             <Text style={[styles.timerText, { fontSize: 22 }]}>Paused</Text>
           )}
+          <Text style={{ position: "absolute", bottom: 10, right: 10 }}>
+            Move count: {player2MoveCount}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
